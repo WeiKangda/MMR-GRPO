@@ -1,0 +1,22 @@
+# Visualization / plotting scripts
+visualize_*.py
+
+# Internal documentation
+docs/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.swp
+*.swo

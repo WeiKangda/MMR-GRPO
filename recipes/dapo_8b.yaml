@@ -1,0 +1,101 @@
+# DAPO with Dynamic Sampling (Standard DAPO from paper) - 8B Model
+# This configuration enables all 4 DAPO techniques:
+# 1. Token-level policy gradient loss
+# 2. Asymmetric clipping (epsilon_low=0.2, epsilon_high=0.28)
+# 3. Dynamic sampling (filters zero-variance prompts)
+# 4. Overlong reward shaping (via token-level normalization)
+# - LoRA for efficient 8B model training
+
+# Model arguments
+model_name_or_path: deepseek-ai/DeepSeek-R1-Distill-Llama-8B
+model_revision: main
+torch_dtype: bfloat16
+attn_implementation: flash_attention_2
+
+# LoRA/PEFT configuration
+use_peft: true
+lora_r: 64
+lora_alpha: 128
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+use_rslora: false
+load_in_4bit: false
+load_in_8bit: false
+
+# Data training arguments
+dataset_name: knoveleng/open-rs
+system_prompt: "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer, and put your final answer within \\boxed{{}} . The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. Note that respond by English, NOT use other languages."
+
+# DAPO trainer config
+bf16: true
+use_vllm: true
+vllm_device: auto
+vllm_enforce_eager: true
+vllm_gpu_memory_utilization: 0.7
+vllm_max_model_len: 4608
+do_eval: false
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+hub_model_id: DAPO-8B
+hub_strategy: every_save
+learning_rate: 1.0e-06
+log_completions: true
+log_level: info
+logging_first_step: true
+logging_steps: 1
+logging_strategy: steps
+lr_scheduler_type: cosine_with_min_lr
+lr_scheduler_kwargs:
+  min_lr_rate: 0.1
+max_prompt_length: 512
+max_completion_length: 3584
+max_steps: 200
+num_generations: 6
+num_train_epochs: 1
+output_dir: model/DAPO-8B
+overwrite_output_dir: true
+per_device_eval_batch_size: 6
+per_device_train_batch_size: 6
+push_to_hub: true
+report_to:
+- wandb
+reward_funcs:
+- accuracy
+- cosine
+reward_weights:
+- 1.0
+- 1.0
+save_strategy: "steps"
+save_steps: 10
+seed: 2025
+temperature: 0.7
+warmup_ratio: 0.1
+
+# DAPO-specific parameters
+enable_dynamic_sampling: true  # Enable dynamic sampling
+filter_reward_index: 0  # Filter on accuracy_reward (first reward function)
+max_num_gen_batches: 20  # Max attempts to collect diverse prompts (increased for harder prompts)
+epsilon_low: 0.2  # Lower clipping bound (PPO-style)
+epsilon_high: 0.28  # Upper clipping bound (clip-higher strategy)
+
+# MMR reweighting (disabled for standard DAPO)
+SMI_reweighting: false
+MMR_reweighting: false
+MMR_SIGMOID_reweighting: false
+lambda_div: 0.7
+extractor_name: jina
+
+# Visualization settings
+log_reward_reweighting: false
+log_reward_plots: true
+reward_plot_frequency: 10
+save_reward_data: true

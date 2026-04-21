@@ -1,0 +1,23 @@
+# Evaluation environment (mmr_grpo_eval)
+# Python 3.11.7 | CUDA 12.6.x
+#
+# A separate environment is needed because the training-era lighteval
+# (git commit ed08481) does NOT support pass@1 with n=16.
+# lighteval >= 0.12.2 from PyPI is required for proper evaluation.
+
+torch==2.7.1
+accelerate==1.11.0
+datasets==4.4.1
+transformers>=4.49.0
+lighteval==0.12.2
+vllm==0.10.0
+
+# Math verification
+latex2sympy2_extended>=1.0.6
+math-verify==0.5.2
+
+# Utilities
+huggingface-hub[cli]<1.0,>=0.19.2
+packaging>=23.0
+safetensors>=0.3.3
+sentencepiece>=0.1.99
